@@ -71,8 +71,11 @@ namespace D3D12
 		}
 		m_depthBuffer.Reset();
 
+
+		CRect clientRect;
+		GetClientRect(m_hWnd, &clientRect);
 		// Resize the swap chain.
-		DBG::ThrowIfFailed(m_swapChain->ResizeBuffers())
+		DBG::ThrowIfFailed(m_swapChain->ResizeBuffers(m_frameCount, clientRect.Width(), clientRect.Height(), DXGI_FORMAT_R8G8B8A8_UNORM, ))
 	}
 
 	void Device::FlushCommmandQueue()
