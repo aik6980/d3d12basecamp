@@ -26,3 +26,6 @@
 # Executables
 *.out
 *.app
+
+# Build Files
+build/*

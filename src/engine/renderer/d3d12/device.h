@@ -34,8 +34,9 @@ namespace D3D12
 		ComPtr<ID3D12GraphicsCommandList>	m_commandList;
 
 		ComPtr<IDXGISwapChain3>		m_swapChain;
+		UINT						m_currBackBuffer = 0;
 
-		uint64_t					m_currentFence = 0;
+		uint64_t					m_currFence = 0;
 		ComPtr<ID3D12Fence>			m_fence;
 
 		UINT	m_rtvDescHeapSize = 0;

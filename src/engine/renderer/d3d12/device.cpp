@@ -2,6 +2,7 @@
 
 #include "device.h"
 
+#include "d3dx12.h"
 #include "engine/core/debug/debugUtil.h"
 #include "engine/core/debug/debugOutput.h"
 
@@ -75,26 +76,30 @@ namespace D3D12
 		CRect clientRect;
 		GetClientRect(m_hWnd, &clientRect);
 		// Resize the swap chain.
-		DBG::ThrowIfFailed(m_swapChain->ResizeBuffers(m_frameCount, clientRect.Width(), clientRect.Height(), DXGI_FORMAT_R8G8B8A8_UNORM, ))
+		DBG::ThrowIfFailed(m_swapChain->ResizeBuffers(m_frameCount, clientRect.Width(), clientRect.Height(), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
+
+		m_currBackBuffer = 0;
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle()
 	}
 
 	void Device::FlushCommmandQueue()
 	{
 		// Advance the fence value to mark commands up to this fence point.
-		m_currentFence++;
+		m_currFence++;
 
 		// Add an instruction to the command queue to set a new fence point.  Because we 
 		// are on the GPU timeline, the new fence point won't be set until the GPU finishes
 		// processing all the commands prior to this Signal().
-		DBG::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_currentFence));
+		DBG::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_currFence));
 
 		// Wait until the GPU has completed commands up to this fence point.
-		if (m_fence->GetCompletedValue() < m_currentFence)
+		if (m_fence->GetCompletedValue() < m_currFence)
 		{
 			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
 
 			// Fire event when GPU hits current fence.
-			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_currentFence, eventHandle));
+			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_currFence, eventHandle));
 
 			// Wait until the GPU hits current fence event is fired.
 			WaitForSingleObject(eventHandle, INFINITE);
@@ -166,6 +171,7 @@ namespace D3D12
 		desc.OutputWindow = m_hWnd;
 		desc.SampleDesc.Count = 1;
 		desc.Windowed = true;
+		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 		ComPtr<IDXGISwapChain> swapChain;
 		DBG::ThrowIfFailed(m_dxgiFactory->CreateSwapChain(m_commandQueue.Get(), // Swap chain needs the queue so that it can force a flush on it.
