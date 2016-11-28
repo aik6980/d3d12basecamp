@@ -17,7 +17,7 @@ namespace D3D12
 
 		void CreateRtvAndDsvDescriptorHeaps();
 
-		void FlushCommmandQueue();
+		void FlushCommandQueue();
 
 		static const uint32_t		m_frameCount = 2;
 
@@ -47,5 +47,8 @@ namespace D3D12
 
 		ComPtr<ID3D12Resource> m_swapChainBuffer[m_frameCount];
 		ComPtr<ID3D12Resource> m_depthBuffer;
+
+		D3D12_VIEWPORT	m_screenViewport;
+		D3D12_RECT		m_screenScissorRect;
 	};
 }

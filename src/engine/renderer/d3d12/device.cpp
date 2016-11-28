@@ -10,6 +10,8 @@ namespace D3D12
 {
 	static const D3D_FEATURE_LEVEL REQUESTED_FEATURE_LEVEL = D3D_FEATURE_LEVEL_12_1;
 
+	static const DXGI_FORMAT depthStencilFmt = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
 	void Device::LoadPipeline(HWND hwnd)
 	{
 		m_hWnd = hwnd;
@@ -61,7 +63,7 @@ namespace D3D12
 		assert(m_commandAlloc);
 
 		// Flush before changing any resources.
-		FlushCommmandQueue();
+		FlushCommandQueue();
 
 		DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
 
@@ -80,10 +82,81 @@ namespace D3D12
 
 		m_currBackBuffer = 0;
 
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle()
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+		for (int i = 0; i < m_frameCount; ++i)
+		{
+			DBG::ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_swapChainBuffer[i])));
+			m_device->CreateRenderTargetView(m_swapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+			rtvHeapHandle.Offset(1, m_rtvDescHeapSize);
+		}
+
+		// resize Depth Buffer
+		D3D12_RESOURCE_DESC depthDesc;
+		depthDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		depthDesc.Alignment = 0;
+		depthDesc.Width = clientRect.Width();
+		depthDesc.Height = clientRect.Height();
+		depthDesc.DepthOrArraySize = 1;
+		depthDesc.MipLevels = 1;
+
+		// the depth buffer.  because we need to create two views to the same resource:
+		//   1. SRV format: DXGI_FORMAT_R24_UNORM_X8_TYPELESS
+		//   2. DSV Format: DXGI_FORMAT_D24_UNORM_S8_UINT
+		// we need to create the depth buffer resource with a typeless format.  
+		depthDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+
+		depthDesc.SampleDesc.Quality = 0;
+		depthDesc.SampleDesc.Count = 1;
+		depthDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		depthDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+		D3D12_CLEAR_VALUE clearVal;
+		clearVal.Format = depthStencilFmt;
+		clearVal.DepthStencil.Depth = 1.0f;
+		clearVal.DepthStencil.Stencil = 0;
+
+		DBG::ThrowIfFailed(m_device->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT)
+			, D3D12_HEAP_FLAG_NONE
+			, &depthDesc
+			, D3D12_RESOURCE_STATE_COMMON
+			, &clearVal
+			, IID_PPV_ARGS(&m_depthBuffer)
+		));
+
+		// Create descriptor to mip level 0 of entire resource using the format of the resource.
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Format = depthStencilFmt;
+		dsvDesc.Texture2D.MipSlice = 0;
+
+		m_device->CreateDepthStencilView(m_depthBuffer.Get(), &dsvDesc, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+
+		// Transition the resource from its initial state to be used as a depth buffer.
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_depthBuffer.Get(),
+			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+		// Execute the resize commands.
+		DBG::ThrowIfFailed(m_commandList->Close());
+		ID3D12CommandList* cmdList[] = { m_commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(1, cmdList);
+
+		// Wait until resize is complete.
+		FlushCommandQueue();
+
+		// Update the viewport transform to cover the client area.
+		m_screenViewport.TopLeftX = 0;
+		m_screenViewport.TopLeftY = 0;
+		m_screenViewport.Width = static_cast<float>(clientRect.Width());
+		m_screenViewport.Height = static_cast<float>(clientRect.Height());
+		m_screenViewport.MinDepth = 0.0f;
+		m_screenViewport.MaxDepth = 1.0f;
+
+		m_screenScissorRect = { 0, 0, clientRect.Width(), clientRect.Height() };
 	}
 
-	void Device::FlushCommmandQueue()
+	void Device::FlushCommandQueue()
 	{
 		// Advance the fence value to mark commands up to this fence point.
 		m_currFence++;
@@ -132,6 +205,7 @@ namespace D3D12
 	void Device::CreateCommandObjects()
 	{
 		D3D12_COMMAND_QUEUE_DESC desc;
+		::ZeroMemory(&desc, sizeof(D3D12_COMMAND_QUEUE_DESC));
 		desc.Type	= D3D12_COMMAND_LIST_TYPE_DIRECT;
 		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
