@@ -13,3 +13,9 @@ void App::OnInit(HINSTANCE hInstance, HWND hWnd)
 	initData.HWnd = hWnd;
 	engine.Init(initData);
 }
+
+
+void App::OnUpdate()
+{
+
+}

@@ -4,7 +4,7 @@ class App
 {
 public:
 	void	OnInit(HINSTANCE hInstance, HWND hWnd);
-	void	OnUpdate()	{};
+	void	OnUpdate();
 	void	OnDestroy() {};
 	
 	void	OnEventMsg(const MSG msg) {};

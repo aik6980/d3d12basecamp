@@ -8,6 +8,12 @@ namespace D3D12
 	// for a frame.
 	class FrameResource
 	{
+		// mark some invalid operation
+		FrameResource(const FrameResource& rhs) = delete;
+		FrameResource& operator=(const FrameResource& rhs) = delete;
+
+
+
 		// We cannot reset the allocator until the GPU is done processing the commands.
 		// So each frame needs their own allocator.
 		ComPtr<ID3D12CommandAllocator>	m_commandListAlloc;
