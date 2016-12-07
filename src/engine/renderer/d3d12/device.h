@@ -9,6 +9,11 @@ namespace D3D12
 	public:
 		void LoadPipeline(HWND hwnd);
 		void OnResize();
+
+		/// helper
+
+		/// low level
+		ID3D12GraphicsCommandList*	command_list() { return m_commandList.Get(); }
 	private:
 		void FindHardwareAdapter(IDXGIFactory4& factory);
 

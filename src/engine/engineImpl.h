@@ -20,6 +20,8 @@ public:
 	~Engine() {}
 
 	void	Init(const InitData& initData);
+
+	D3D12::Device&	render_device() { return *m_renderDevice; };
 private:
 	// sub systems;
 	unique_ptr<D3D12::Device>	m_renderDevice;
