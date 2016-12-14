@@ -12,7 +12,7 @@ namespace D3D12
 
 	static const DXGI_FORMAT depthStencilFmt = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-	void Device::LoadPipeline(HWND hwnd)
+	void DEVICE::LoadPipeline(HWND hwnd)
 	{
 		m_hWnd = hwnd;
 
@@ -56,14 +56,14 @@ namespace D3D12
 		CreateRtvAndDsvDescriptorHeaps();
 	}
 
-	void Device::OnResize()
+	void DEVICE::OnResize()
 	{
 		assert(m_device);
 		assert(m_swapChain);
 		assert(m_commandAlloc);
 
 		// Flush before changing any resources.
-		FlushCommandQueue();
+		flush_command_queue();
 
 		DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
 
@@ -143,7 +143,7 @@ namespace D3D12
 		m_commandQueue->ExecuteCommandLists(1, cmdList);
 
 		// Wait until resize is complete.
-		FlushCommandQueue();
+		flush_command_queue();
 
 		// Update the viewport transform to cover the client area.
 		m_screenViewport.TopLeftX = 0;
@@ -156,7 +156,51 @@ namespace D3D12
 		m_screenScissorRect = { 0, 0, clientRect.Width(), clientRect.Height() };
 	}
 
-	void Device::FlushCommandQueue()
+	void DEVICE::begin_load_resources()
+	{
+		// Reset the command list to prep for initialization commands.
+		// D3D12 Reset() method, https://msdn.microsoft.com/en-us/library/windows/desktop/dn903895(v=vs.85).aspx
+		DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
+	}
+
+	void DEVICE::end_load_resources()
+	{
+		// Execute the initialization commands.
+		DBG::ThrowIfFailed(m_commandList->Close());
+		ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+		// Wait until initialization is complete.
+		flush_command_queue();
+	}
+
+	void DEVICE::begin_frame()
+	{
+
+	}
+
+	void DEVICE::end_frame()
+	{
+		// Done recording commands.
+		DBG::ThrowIfFailed(m_commandList->Close());
+		// Add the command list to the queue for execution.
+		ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+		// Swap the back and front buffers
+		DBG::ThrowIfFailed(m_swapChain->Present(0, 0));
+		m_currBackBuffer = (m_currBackBuffer + 1) % m_frameCount;
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE DEVICE::curr_backbuffer_view() const
+	{
+		return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
+			m_currBackBuffer,
+			m_rtvDescHeapSize);
+	}
+
+	void DEVICE::flush_command_queue()
 	{
 		// Advance the fence value to mark commands up to this fence point.
 		m_currFence++;
@@ -180,7 +224,7 @@ namespace D3D12
 		}
 	}
 
-	void Device::FindHardwareAdapter(IDXGIFactory4& factory)
+	void DEVICE::FindHardwareAdapter(IDXGIFactory4& factory)
 	{
 		ComPtr<IDXGIAdapter1> adapter;
 
@@ -202,7 +246,7 @@ namespace D3D12
 		m_adapter = adapter;
 	}
 
-	void Device::CreateCommandObjects()
+	void DEVICE::CreateCommandObjects()
 	{
 		D3D12_COMMAND_QUEUE_DESC desc;
 		::ZeroMemory(&desc, sizeof(D3D12_COMMAND_QUEUE_DESC));
@@ -228,7 +272,7 @@ namespace D3D12
 		m_commandList->Close();
 	}
 
-	void Device::CreateSwapChain()
+	void DEVICE::CreateSwapChain()
 	{
 		CRect clientRect;
 		GetClientRect(m_hWnd, &clientRect);
@@ -254,7 +298,7 @@ namespace D3D12
 		DBG::ThrowIfFailed(swapChain.As(&m_swapChain));
 	}
 
-	void Device::CreateRtvAndDsvDescriptorHeaps()
+	void DEVICE::CreateRtvAndDsvDescriptorHeaps()
 	{
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC desc;

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
 #include "app/app.h"
+#include "engine/engineImpl.h"
+#include "engine/graphic/mesh_renderer.h"
 
 // Main message handler.
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -71,8 +73,8 @@ int RunMainWindow(HINSTANCE hInstance, int nCmdShow)
 	CRect dim(0, 0, 1024, 768);
 	HWND hwnd = CreateMainWindow(hInstance, nCmdShow, winClassStr, dim);
 	// create app
-	App app;
-	app.OnInit(hInstance, hwnd);
+	APP app;
+	app.on_init(hInstance, hwnd);
 	// message loop
 	MSG msg = { 0 };
 	while (true)
@@ -87,13 +89,13 @@ int RunMainWindow(HINSTANCE hInstance, int nCmdShow)
 				break;
 
 			// Pass events into our sample.
-			app.OnEventMsg(msg);
+			app.on_event_msg(msg);
 		}
 
-		app.OnUpdate();
+		app.on_update();
 	}
 
-	app.OnDestroy();
+	app.on_destroy();
 
 	// Return this part of the WM_QUIT message to Windows.
 	return static_cast<char>(msg.wParam);

@@ -4,16 +4,23 @@ using Microsoft::WRL::ComPtr;
 
 namespace D3D12
 {
-	class Device
+	class DEVICE
 	{
 	public:
+		friend class MESH_RENDERER;
+
 		void LoadPipeline(HWND hwnd);
 		void OnResize();
 
 		/// helper
+		void begin_load_resources();
+		void end_load_resources();
+		void begin_frame();
+		void end_frame();
 
 		/// low level
-		ID3D12GraphicsCommandList*	command_list() { return m_commandList.Get(); }
+		ID3D12GraphicsCommandList*	commmand_list() { return m_commandList.Get(); }
+		D3D12_CPU_DESCRIPTOR_HANDLE curr_backbuffer_view() const;
 	private:
 		void FindHardwareAdapter(IDXGIFactory4& factory);
 
@@ -22,7 +29,7 @@ namespace D3D12
 
 		void CreateRtvAndDsvDescriptorHeaps();
 
-		void FlushCommandQueue();
+		void flush_command_queue();
 
 		static const uint32_t		m_frameCount = 2;
 

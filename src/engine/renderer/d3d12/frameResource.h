@@ -6,13 +6,11 @@ namespace D3D12
 {
 	// Stores the resources needed for the CPU to build the command lists
 	// for a frame.
-	class FrameResource
+	class FRAME_RESOURCE
 	{
 		// mark some invalid operation
-		FrameResource(const FrameResource& rhs) = delete;
-		FrameResource& operator=(const FrameResource& rhs) = delete;
-
-
+		FRAME_RESOURCE(const FRAME_RESOURCE& rhs) = delete;
+		FRAME_RESOURCE& operator=(const FRAME_RESOURCE& rhs) = delete;
 
 		// We cannot reset the allocator until the GPU is done processing the commands.
 		// So each frame needs their own allocator.

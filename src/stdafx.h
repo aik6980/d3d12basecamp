@@ -15,4 +15,8 @@
 #include <d3d12.h>
 #include <d3dcompiler.h>
 
+// directx math
+#include <DirectXMath.h>
+#include <DirectXColors.h>
+
 using namespace std;

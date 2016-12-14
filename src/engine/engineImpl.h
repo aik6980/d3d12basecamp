@@ -4,10 +4,12 @@
 
 #include "renderer/d3d12/device.h"
 
-class Engine
+class MESH_RENDERER;
+
+class ENGINE
 {
 public:
-	struct InitData
+	struct INIT_DATA
 	{
 		HWND	HWnd;
 	};
@@ -16,13 +18,16 @@ public:
 
 	int32_t get_version() { return VERSION; }
 	
-	Engine() {}
-	~Engine() {}
+	ENGINE() {}
+	~ENGINE() {}
 
-	void	Init(const InitData& initData);
+	void	init(const INIT_DATA& initData);
+	void	update();
+	void	draw();
 
-	D3D12::Device&	render_device() { return *m_renderDevice; };
+	D3D12::DEVICE&	render_device() { return *m_render_device; };
 private:
 	// sub systems;
-	unique_ptr<D3D12::Device>	m_renderDevice;
+	unique_ptr<D3D12::DEVICE>	m_render_device;
+	unique_ptr<MESH_RENDERER>	m_mesh_renderer;
 };

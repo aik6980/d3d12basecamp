@@ -1,15 +1,19 @@
 #pragma once
 
-class App
+class ENGINE;
+
+class APP
 {
 public:
-	void	OnInit(HINSTANCE hInstance, HWND hWnd);
-	void	OnUpdate();
-	void	OnDestroy() {};
+	void	on_init(HINSTANCE hInstance, HWND hWnd);
+	void	on_update();
+	void	on_destroy() {};
 	
-	void	OnEventMsg(const MSG msg) {};
-
+	void	on_event_msg(const MSG msg) {};
 private:
 	HINSTANCE	m_hInstance;
 	HWND		m_hWnd;
+
+	// rendering engine
+	unique_ptr<ENGINE>	m_engine;
 };

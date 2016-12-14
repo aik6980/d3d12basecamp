@@ -1,21 +1,24 @@
 #include "stdafx.h"
 
 #include "app.h"
-#include "engine/engineImpl.h"
 
-void App::OnInit(HINSTANCE hInstance, HWND hWnd)
+#include "engine/engineImpl.h"
+#include "engine/graphic/mesh_renderer.h"
+
+void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 {
 	m_hInstance = hInstance;
 	m_hWnd = hWnd;
 
-	Engine engine;
-	Engine::InitData initData;
-	initData.HWnd = hWnd;
-	engine.Init(initData);
+	m_engine = make_unique<ENGINE>();
+	ENGINE::INIT_DATA init_data;
+	init_data.HWnd = hWnd;
+	m_engine->init(init_data);
 }
 
 
-void App::OnUpdate()
+void APP::on_update()
 {
+	m_engine->update();
 
 }
