@@ -1,5 +1,6 @@
 #pragma once
 
+#include "d3dx12.h"
 using Microsoft::WRL::ComPtr;
 
 namespace D3D12
@@ -11,6 +12,8 @@ namespace D3D12
 	public:
 		friend class MESH_RENDERER;
 
+		~DEVICE();
+
 		void LoadPipeline(HWND hwnd);
 		void OnResize();
 
@@ -19,6 +22,9 @@ namespace D3D12
 		void end_load_resources();
 		void begin_frame();
 		void end_frame();
+
+		D3D12_VIEWPORT				get_window_viewport() const;
+		CD3DX12_RECT				get_window_rect() const;
 
 		/// low level
 		ID3D12Device*				device() { return m_device.Get(); }

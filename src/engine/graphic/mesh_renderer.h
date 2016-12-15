@@ -14,6 +14,7 @@ public:
 	void draw();
 private:
 	void build_pso_list();
+	void build_pso_mesh_technique();
 	void build_root_signature();
 
 	ENGINE&	m_engine;

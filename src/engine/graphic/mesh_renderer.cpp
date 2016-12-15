@@ -21,6 +21,7 @@ void MESH_RENDERER::init()
 void MESH_RENDERER::load_resources()
 {
 	m_shader_list["default.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders/default.vs.obj");
+	m_shader_list["mesh.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders/mesh.vs.obj");
 	m_shader_list["default.ps"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders/default.ps.obj");
 
 	build_root_signature();
@@ -35,9 +36,16 @@ void MESH_RENDERER::draw()
 	// Specify the buffers we are going to render to.
 	command_list->OMSetRenderTargets(1, &render_device.curr_backbuffer_view(), true, 
 		&render_device.curr_backbuffer_depth_stencil_view());
+	command_list->RSSetViewports(1, &render_device.get_window_viewport());
+	command_list->RSSetScissorRects(1, &render_device.get_window_rect());
 	
 	command_list->SetPipelineState(m_pso_list["default"].Get());
+	command_list->SetGraphicsRootSignature(m_root_signature.Get());
+	command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	command_list->DrawInstanced(3, 1, 0, 0);
+
+	command_list->SetPipelineState(m_pso_list["mesh"].Get());
+	command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
 void MESH_RENDERER::build_pso_list()
@@ -54,11 +62,31 @@ void MESH_RENDERER::build_pso_list()
 
 	DBG::ThrowIfFailed(m_engine.render_device().
 		device()->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&m_pso_list["default"])));
+
+	build_pso_mesh_technique();
+}
+
+void MESH_RENDERER::build_pso_mesh_technique()
+{
+	D3D12::GRAPHICS_PIPELINE_STATE_DESC pso_desc;
+	pso_desc.NumRenderTargets = 1;
+	pso_desc.RTVFormats[0] = m_engine.render_device().get_swap_chain_desc().BufferDesc.Format;
+	pso_desc.DSVFormat = m_engine.render_device().get_depth_stencil_format();
+
+	pso_desc.set_vertex_shader(m_shader_list["mesh.vs"].Get());
+	pso_desc.set_pixel_shader(m_shader_list["default.ps"].Get());
+
+	pso_desc.InputLayout = 
+	pso_desc.pRootSignature = m_root_signature.Get();
+
+	DBG::ThrowIfFailed(m_engine.render_device().
+		device()->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&m_pso_list["mesh"])));
 }
 
 void MESH_RENDERER::build_root_signature()
 {
 	// A root signature is an array of root parameters.
+	//CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr);
 
 	ComPtr<ID3DBlob> serialized_root_sig = nullptr;

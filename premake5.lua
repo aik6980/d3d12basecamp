@@ -4,7 +4,7 @@ workspace "basecamp"
 	configurations { "debug", "profile", "release" }
 	platforms { "win64" }
 	
-	systemversion "10.0.14393.0:10.0.10586.0"
+	systemversion ("10.0.10586.0:10.0.14393.0")
 	
 	filter "platforms:win64"
 		system "Windows"
@@ -66,6 +66,8 @@ project "winapp"
 	includedirs { "src" }
 	
 	links { "d3d12", "dxgi", "d3dcompiler" }
+	
+	debugdir "$(TargetDir)"
 	
 	filter "configurations:debug"
 		defines { "DEBUG" }

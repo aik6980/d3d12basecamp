@@ -12,6 +12,11 @@ namespace D3D12
 {
 	static const D3D_FEATURE_LEVEL REQUESTED_FEATURE_LEVEL = D3D_FEATURE_LEVEL_12_1;
 
+	DEVICE::~DEVICE()
+	{
+		flush_command_queue();
+	}
+
 	void DEVICE::LoadPipeline(HWND hwnd)
 	{
 		m_hWnd = hwnd;
@@ -222,6 +227,30 @@ namespace D3D12
 		// Because we are on the GPU timeline, the new fence point won't be 
 		// set until the GPU finishes processing all the commands prior to this Signal().
 		m_commandQueue->Signal(m_fence.Get(), m_currFence);
+	}
+
+	D3D12_VIEWPORT DEVICE::get_window_viewport() const
+	{
+		CRect client_rect;
+		GetClientRect(m_hWnd, &client_rect);
+
+		D3D12_VIEWPORT output;
+		output.TopLeftX = (float)client_rect.TopLeft().x;
+		output.TopLeftY = (float)client_rect.TopLeft().y;
+		output.Width = (float)client_rect.Width();
+		output.Height = (float)client_rect.Height();
+		output.MinDepth = 0.0f;
+		output.MaxDepth = 1.0f;
+
+		return output;
+	}
+
+	CD3DX12_RECT DEVICE::get_window_rect() const
+	{
+		CRect client_rect;
+		GetClientRect(m_hWnd, &client_rect);
+		return CD3DX12_RECT(client_rect.TopLeft().x, client_rect.TopLeft().y,
+			client_rect.BottomRight().x, client_rect.BottomRight().y);
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE DEVICE::curr_backbuffer_view() const
