@@ -1,9 +1,8 @@
 #include "stdafx.h"
-
 #include "app.h"
 
 #include "engine/engineImpl.h"
-#include "engine/graphic/mesh_renderer.h"
+#include "engine/engine_cpp.h"
 
 void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 {
@@ -16,9 +15,8 @@ void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 	m_engine->init(init_data);
 }
 
-
 void APP::on_update()
 {
 	m_engine->update();
-
+	m_engine->draw();
 }

@@ -1,19 +1,16 @@
+#include "default_shared.hlsli"
 
-struct VS_INPUT
+static const float3 tri[] = 
 {
-	float4 position : SV_Position;
+	float3(0.5, 0.25, 0.5),
+	float3(0.25, 0.75, 0.5),
+	float3(0.75, 0.75, 0.5)
 };
 
-struct VS_OUTPUT
-{
-	float4 position : SV_Position;
-};
-
-
-VS_OUTPUT main(VS_INPUT input)
+VS_OUTPUT main(uint vertex_id : SV_VertexID)
 {
 	VS_OUTPUT output;
-	output.position = input.position;
+	output.position = float4(tri[vertex_id], 1.0);
 
 	return output;
 }

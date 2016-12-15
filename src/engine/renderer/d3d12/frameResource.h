@@ -8,6 +8,9 @@ namespace D3D12
 	// for a frame.
 	class FRAME_RESOURCE
 	{
+	public:
+		FRAME_RESOURCE(ID3D12Device* device);
+
 		// mark some invalid operation
 		FRAME_RESOURCE(const FRAME_RESOURCE& rhs) = delete;
 		FRAME_RESOURCE& operator=(const FRAME_RESOURCE& rhs) = delete;

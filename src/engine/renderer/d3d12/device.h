@@ -4,6 +4,8 @@ using Microsoft::WRL::ComPtr;
 
 namespace D3D12
 {
+	class FRAME_RESOURCE;
+
 	class DEVICE
 	{
 	public:
@@ -19,8 +21,15 @@ namespace D3D12
 		void end_frame();
 
 		/// low level
+		ID3D12Device*				device() { return m_device.Get(); }
 		ID3D12GraphicsCommandList*	commmand_list() { return m_commandList.Get(); }
+		
 		D3D12_CPU_DESCRIPTOR_HANDLE curr_backbuffer_view() const;
+		D3D12_CPU_DESCRIPTOR_HANDLE curr_backbuffer_depth_stencil_view() const;
+		ID3D12Resource*				curr_backbuffer() const;
+
+		DXGI_SWAP_CHAIN_DESC		get_swap_chain_desc() const;
+		DXGI_FORMAT					get_depth_stencil_format() const { return m_depth_stencil_format; }
 	private:
 		void FindHardwareAdapter(IDXGIFactory4& factory);
 
@@ -31,7 +40,11 @@ namespace D3D12
 
 		void flush_command_queue();
 
+		// frame resource function
+		void build_frame_resource_list();
+
 		static const uint32_t		m_frameCount = 2;
+		static const DXGI_FORMAT	m_depth_stencil_format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 		/// win32
 		HWND						m_hWnd;
@@ -62,5 +75,12 @@ namespace D3D12
 
 		D3D12_VIEWPORT	m_screenViewport;
 		D3D12_RECT		m_screenScissorRect;
+
+
+		//Frame Resources
+		const static UINT m_num_frame_resources = 3;
+		vector<unique_ptr<FRAME_RESOURCE>>	m_frame_resource_list;
+		FRAME_RESOURCE*						m_curr_frame_resource = nullptr;
+		UINT								m_curr_frame_resource_index = 0;
 	};
 }

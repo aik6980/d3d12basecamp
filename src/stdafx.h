@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <vector>
+#include <unordered_map>
 
 #include <assert.h>
 #include <windows.h>
@@ -20,3 +22,4 @@
 #include <DirectXColors.h>
 
 using namespace std;
+using Microsoft::WRL::ComPtr;

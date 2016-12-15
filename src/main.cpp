@@ -1,8 +1,7 @@
 #include "stdafx.h"
 
 #include "app/app.h"
-#include "engine/engineImpl.h"
-#include "engine/graphic/mesh_renderer.h"
+#include "engine/engine_cpp.h"
 
 // Main message handler.
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

@@ -1,10 +1,6 @@
 #pragma once
 
-#include "engine.h"
-
-#include "renderer/d3d12/device.h"
-
-class MESH_RENDERER;
+#include "engine/renderer/renderer.h"
 
 class ENGINE
 {
@@ -17,9 +13,6 @@ public:
 	static const int32_t VERSION = 1;
 
 	int32_t get_version() { return VERSION; }
-	
-	ENGINE() {}
-	~ENGINE() {}
 
 	void	init(const INIT_DATA& initData);
 	void	update();
