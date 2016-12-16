@@ -45,6 +45,7 @@ void MESH_RENDERER::draw()
 	command_list->DrawInstanced(3, 1, 0, 0);
 
 	command_list->SetPipelineState(m_pso_list["mesh"].Get());
+	//command_list->IASetVertexBuffers()
 	command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
@@ -76,7 +77,11 @@ void MESH_RENDERER::build_pso_mesh_technique()
 	pso_desc.set_vertex_shader(m_shader_list["mesh.vs"].Get());
 	pso_desc.set_pixel_shader(m_shader_list["default.ps"].Get());
 
-	pso_desc.InputLayout = 
+	// create input_layout here
+	D3D12::INPUT_LAYOUT_ELEMENT_DESC elem;
+	m_input_layout_desc.m_layout.push_back(elem);
+	//////////////////////////////////////////////////////////////////////////
+	pso_desc.InputLayout = m_input_layout_desc.as_d3d12_input_layout_desc();
 	pso_desc.pRootSignature = m_root_signature.Get();
 
 	DBG::ThrowIfFailed(m_engine.render_device().

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include "engine/renderer/renderer.h"
 
 class ENGINE;
 
@@ -24,5 +25,5 @@ private:
 	unordered_map<string, ComPtr<ID3D12PipelineState>>	m_pso_list; // PSO == Technique in D3D11
 	ComPtr<ID3D12RootSignature>							m_root_signature;
 
-	vector<
+	D3D12::INPUT_LAYOUT_DESC							m_input_layout_desc;
 };
