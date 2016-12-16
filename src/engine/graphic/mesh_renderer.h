@@ -23,4 +23,6 @@ private:
 	unordered_map<string, ComPtr<ID3DBlob>>				m_shader_list;
 	unordered_map<string, ComPtr<ID3D12PipelineState>>	m_pso_list; // PSO == Technique in D3D11
 	ComPtr<ID3D12RootSignature>							m_root_signature;
+
+	vector<
 };
