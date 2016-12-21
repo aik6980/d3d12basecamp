@@ -4,8 +4,8 @@ workspace "basecamp"
 	configurations { "debug", "profile", "release" }
 	platforms { "win64" }
 	
-	systemversion ("10.0.10586.0:10.0.14393.0")
-	--systemversion "10.0.14393.0"
+	--systemversion ("10.0.10586.0:10.0.14393.0")
+	systemversion "10.0.14393.0"
 	
 	filter "platforms:win64"
 		system "Windows"
