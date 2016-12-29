@@ -2,9 +2,9 @@
 
 #include "mesh_renderer.h"
 
-#include "engine/engineImpl.h"
-#include "engine/engine.h"
-#include "engine/renderer/renderer_cpp.h"
+#include "engineImpl.h"
+#include "engine.h"
+#include "renderer/renderer_cpp.h"
 
 
 MESH_RENDERER::MESH_RENDERER(ENGINE& engine)
@@ -20,9 +20,9 @@ void MESH_RENDERER::init()
 
 void MESH_RENDERER::load_resources()
 {
-	m_shader_list["default.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders/default.vs.obj");
-	m_shader_list["mesh.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders/mesh.vs.obj");
-	m_shader_list["default.ps"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders/default.ps.obj");
+	m_shader_list["default.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"hlsl/default.vs.obj");
+	m_shader_list["mesh.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"hlsl/mesh.vs.obj");
+	m_shader_list["default.ps"] = D3D12::SHADER_MANAGER::load_from_objfile(L"hlsl/default.ps.obj");
 
 	build_root_signature();
 	build_pso_list();
@@ -44,9 +44,9 @@ void MESH_RENDERER::draw()
 	command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	command_list->DrawInstanced(3, 1, 0, 0);
 
-	command_list->SetPipelineState(m_pso_list["mesh"].Get());
+	//command_list->SetPipelineState(m_pso_list["mesh"].Get());
 	//command_list->IASetVertexBuffers()
-	command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	//command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
 void MESH_RENDERER::build_pso_list()
@@ -64,7 +64,7 @@ void MESH_RENDERER::build_pso_list()
 	DBG::ThrowIfFailed(m_engine.render_device().
 		device()->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&m_pso_list["default"])));
 
-	build_pso_mesh_technique();
+	//build_pso_mesh_technique();
 }
 
 void MESH_RENDERER::build_pso_mesh_technique()

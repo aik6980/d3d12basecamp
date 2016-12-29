@@ -1,7 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include "engine/renderer/renderer.h"
+#include "renderer/renderer.h"
 
 class ENGINE;
 

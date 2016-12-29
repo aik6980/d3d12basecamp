@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#include "frameResource.h"
-#include "engine\engine_cpp.h"
+#include "frame_resource.h"
+#include "engine_cpp.h"
 
 namespace D3D12
 {

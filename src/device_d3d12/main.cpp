@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "app/app.h"
-#include "engine/engine_cpp.h"
+#include "engine_cpp.h"
 
 // Main message handler.
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
 #include "engineImpl.h"
-#include "engine/renderer/renderer_cpp.h"
-#include "engine/graphic/mesh_renderer.h"
+#include "renderer/renderer_cpp.h"
+#include "graphic/mesh_renderer.h"
 
 void ENGINE::init(const INIT_DATA& initData)
 {

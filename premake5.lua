@@ -6,10 +6,23 @@ workspace "basecamp"
 	
 	--systemversion ("10.0.10586.0:10.0.14393.0")
 	systemversion "10.0.14393.0"
+	startproject "device_vulkan"
 	
 	filter "platforms:win64"
 		system "Windows"
 		architecture "x64"
+		
+	filter "configurations:debug"
+		defines { "DEBUG" }
+		symbols "On"
+	
+	filter "configurations:profile"
+		defines { "NDEBUG" }
+		optimize "On"
+	
+	filter "configurations:release"
+		defines { "NDEBUG" }
+		optimize "On"
 
 rule "HLSLCompile"
 	display "HLSL Compiler"
@@ -31,12 +44,12 @@ rule "HLSLCompile"
 	buildcommands '"$(WindowsSdkDir)/bin/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
 	buildoutputs '$(TargetPath)/%(Filename).obj'
 		
-project "shaders"
+project "shaders_hlsl"
 	kind "Utility"
 	targetdir "bin/%{cfg.buildcfg}"
 	
 	rules { "HLSLCompile" }
-	files { "src/shaders/**" }
+	files { "src/device_d3d12/shaders/**" }
 	
 	filter "files:**.vs.hlsl"
 		HLSLCompileVars {
@@ -52,8 +65,20 @@ project "shaders"
 		HLSLCompileVars {
 			asm_file_output = "/Fc $(TargetPath)/%(Filename).asm"
 		}
+
+project "common"
+	kind "StaticLib"
 		
-project "winapp"
+	language "C++"
+	targetdir "bin/%{cfg.buildcfg}"
+	
+	pchheader "stdafx.h"
+	pchsource "src/common/stdafx.cpp"
+	files {"src/common/**.h", "src/common/**.cpp"}
+	
+	includedirs { "src/common" }
+	
+project "device_d3d12"
 	kind "WindowedApp"
 	flags {"Winmain"}
 	
@@ -61,25 +86,28 @@ project "winapp"
 	targetdir "bin/%{cfg.buildcfg}"
 	
 	pchheader "stdafx.h"
-	pchsource "src/stdafx.cpp"
-	files {"src/**.h", "src/**.cpp"}
+	pchsource "src/device_d3d12/stdafx.cpp"
+	files {"src/device_d3d12/**.h", "src/device_d3d12/**.cpp"}
 	
-	includedirs { "src" }
+	includedirs { "src", "src/device_d3d12" }
 	
-	links { "d3d12", "dxgi", "d3dcompiler" }
+	links { "d3d12", "dxgi", "d3dcompiler", "common" }
 	
 	debugdir "$(TargetDir)"
 	
-	filter "configurations:debug"
-		defines { "DEBUG" }
-		symbols "On"
+project "device_vulkan"
+	kind "WindowedApp"
+	flags {"Winmain"}
 	
-	filter "configurations:profile"
-		defines { "NDEBUG" }
-		optimize "On"
+	language "C++"
+	targetdir "bin/%{cfg.buildcfg}"
 	
-	filter "configurations:release"
-		defines { "NDEBUG" }
-		optimize "On"
-
+	pchheader "stdafx.h"
+	pchsource "src/device_vulkan/stdafx.cpp"
+	files {"src/device_vulkan/**.h", "src/device_vulkan/**.cpp"}
 	
+	includedirs { "src", "src/device_vulkan" }
+	
+	links { "common" }
+	
+	debugdir "$(TargetDir)"

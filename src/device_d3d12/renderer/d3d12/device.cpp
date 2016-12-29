@@ -3,10 +3,10 @@
 #include "device.h"
 
 #include "d3dx12.h"
-#include "frameResource.h"
+#include "frame_resource.h"
 
-#include "engine/core/debug/debugUtil.h"
-#include "engine/core/debug/debugOutput.h"
+#include "common/debug/debugUtil.h"
+#include "common/debug/debugOutput.h"
 
 namespace D3D12
 {

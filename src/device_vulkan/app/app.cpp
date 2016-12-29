@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "app.h"
 
-#include "engine/engineImpl.h"
-#include "engine/engine_cpp.h"
+#include "device_vulkan.cpp.h"
 
 void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 {
