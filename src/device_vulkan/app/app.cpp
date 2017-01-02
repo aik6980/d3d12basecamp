@@ -8,14 +8,17 @@ void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 	m_hInstance = hInstance;
 	m_hWnd = hWnd;
 
-	m_engine = make_unique<ENGINE>();
-	ENGINE::INIT_DATA init_data;
-	init_data.HWnd = hWnd;
-	m_engine->init(init_data);
+	m_render_device.reset(new VK::DEVICE());
+	VK::DEVICE::INIT_DATA init_info = { m_hInstance, m_hWnd };
+	m_render_device->init(init_info);
 }
 
 void APP::on_update()
 {
-	m_engine->update();
-	m_engine->draw();
+
+}
+
+void APP::on_destroy()
+{
+	m_render_device->destroy();
 }

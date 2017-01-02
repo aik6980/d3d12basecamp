@@ -11,12 +11,12 @@
 #include <windows.h>
 #include <atltypes.h>
 
-// d3d12 
-#include <wrl.h>
+// vulkan
+#define VK_USE_PLATFORM_WIN32_KHR
+#include "vulkan/vulkan.hpp"
 
 // directx math
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
 using namespace std;
-using Microsoft::WRL::ComPtr;

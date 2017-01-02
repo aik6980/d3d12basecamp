@@ -106,8 +106,9 @@ project "device_vulkan"
 	pchsource "src/device_vulkan/stdafx.cpp"
 	files {"src/device_vulkan/**.h", "src/device_vulkan/**.cpp"}
 	
-	includedirs { "src", "src/device_vulkan" }
+	includedirs { "$(VK_SDK_PATH)/include", "src", "src/device_vulkan" }
 	
-	links { "common" }
+	libdirs { "$(VK_SDK_PATH)/bin" }
+	links { "vulkan-1.lib", "common" }
 	
 	debugdir "$(TargetDir)"
