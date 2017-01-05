@@ -24,4 +24,10 @@ namespace VK
 		vk::DeviceMemory	  m_data;
 		vector<vk::ImageView> m_view_list;
 	};
+
+	struct UNIFORM_BUFFER
+	{
+		vk::Buffer			m_buffer;
+		vk::DeviceMemory	m_data;
+	};
 }

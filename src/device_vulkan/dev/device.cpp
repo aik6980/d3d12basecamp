@@ -102,6 +102,12 @@ namespace VK
 		return UINT32_MAX;
 	}
 
+	uint32_t DEVICE::get_memory_type_from_properties(uint32_t typebits, vk::MemoryPropertyFlags requirements_mask)
+	{
+		auto&& selected_gpu = m_device_list[0];
+		return get_memory_type_from_properties(selected_gpu.m_memory_properties, typebits, requirements_mask);
+	}
+
 	void DEVICE::init_enumerate_physical_devices()
 	{
 		// enumerate through available devices

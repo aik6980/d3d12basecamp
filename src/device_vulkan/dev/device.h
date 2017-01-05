@@ -35,9 +35,14 @@ namespace VK
 		void destroy_instance();
 
 		vk::Extent2D get_client_rect();
-		uint32_t get_memory_type_from_properties(const vk::PhysicalDeviceMemoryProperties memory_properties, 
-			uint32_t typebits, vk::MemoryPropertyFlags requirements_mask);
+		uint32_t get_memory_type_from_properties(uint32_t typebits, vk::MemoryPropertyFlags requirements_mask);
+
+		const GPU&			get_selected_gpu() { return m_device_list[0]; }
+		const vk::Device&	get_device()       { return m_device; }
 	private:
+		uint32_t get_memory_type_from_properties(const vk::PhysicalDeviceMemoryProperties memory_properties,
+			uint32_t typebits, vk::MemoryPropertyFlags requirements_mask);
+
 		INIT_DATA				m_init_data;
 
 		vk::Instance			m_instance;
