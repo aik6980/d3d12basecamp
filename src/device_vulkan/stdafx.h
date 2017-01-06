@@ -20,3 +20,4 @@
 #include <DirectXColors.h>
 
 using namespace std;
+using namespace DirectX;
