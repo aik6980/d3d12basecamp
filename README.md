@@ -18,6 +18,9 @@ https://channel9.msdn.com/Events/GDC/GDC-2015/Advanced-DirectX12-Graphics-and-Pe
 http://nextgenapis.realtimerendering.com/  
 
 ### articles
+#### collection of links
+https://github.com/vinjn/awesome-d3d12  
+
 #### overview
 http://web.eecs.umich.edu/~sugih/courses/eecs487/lectures/21-LowLevelAPIs.pdf  
 
@@ -32,6 +35,9 @@ http://www.gamasutra.com/blogs/EGORYUSOV/20160421/270974/Efficient_Implementatio
 
 #### bindless texturing
 https://mynameismjp.wordpress.com/2016/03/25/bindless-texturing-for-deferred-rendering-and-decals/  
+
+### compute
+http://on-demand.gputechconf.com/gtc/2015/presentation/S5561-Chas-Boyd.pdf
 
 
 
