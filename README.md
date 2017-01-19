@@ -40,4 +40,13 @@ https://mynameismjp.wordpress.com/2016/03/25/bindless-texturing-for-deferred-ren
 http://on-demand.gputechconf.com/gtc/2015/presentation/S5561-Chas-Boyd.pdf
 
 
+### OIT
+https://docs.nvidia.com/gameworks/content/gameworkslibrary/graphicssamples/opengl_samples/weightedblendedoitsample.htm  
+http://casual-effects.blogspot.co.uk/2014/03/weighted-blended-order-independent.html  
+https://software.intel.com/en-us/articles/multi-layer-alpha-blending  
+http://openglinsights.com/bendingthepipeline.html  
+http://on-demand.gputechconf.com/gtc/2014/presentations/S4385-order-independent-transparency-opengl.pdf  
 
+### Point-based simulation
+http://blog.mmacklin.com/publications/  
+http://mmacklin.com/flex_eurographics_tutorial.pdf  
