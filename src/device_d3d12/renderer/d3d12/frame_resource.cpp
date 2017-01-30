@@ -9,6 +9,6 @@ namespace D3D12
 	{
 		DBG::ThrowIfFailed(device->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(m_commandListAlloc.GetAddressOf())));
+			IID_PPV_ARGS(m_command_list_alloc.GetAddressOf())));
 	}
 }

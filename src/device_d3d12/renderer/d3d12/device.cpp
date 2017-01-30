@@ -198,7 +198,7 @@ namespace D3D12
 			CloseHandle(event_handle);
 		}
 
-		auto cmd_list_allocator = m_curr_frame_resource->m_commandListAlloc;
+		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
 		// Reuse the memory associated with command recording.
 		// We can only reset when the associated command lists have finished execution on the GPU.
 		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
