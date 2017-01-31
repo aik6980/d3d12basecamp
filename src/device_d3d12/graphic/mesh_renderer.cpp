@@ -20,9 +20,9 @@ void MESH_RENDERER::init()
 
 void MESH_RENDERER::load_resources()
 {
-	m_shader_list["default.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"hlsl/default.vs.obj");
-	m_shader_list["mesh.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"hlsl/mesh.vs.obj");
-	m_shader_list["default.ps"] = D3D12::SHADER_MANAGER::load_from_objfile(L"hlsl/default.ps.obj");
+	m_shader_list["default.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders_hlsl/default.vs.obj");
+	m_shader_list["mesh.vs"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders_hlsl/mesh.vs.obj");
+	m_shader_list["default.ps"] = D3D12::SHADER_MANAGER::load_from_objfile(L"shaders_hlsl/default.ps.obj");
 
 	build_root_signature();
 	build_pso_list();

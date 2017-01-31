@@ -45,6 +45,7 @@ namespace D3D12
 		void CreateRtvAndDsvDescriptorHeaps();
 
 		void flush_command_queue();
+		void reset_current_command_allocator();
 
 		// frame resource function
 		void build_frame_resource_list();
@@ -61,7 +62,8 @@ namespace D3D12
 		ComPtr<ID3D12Device>		m_device;
 		
 		ComPtr<ID3D12CommandQueue>			m_commandQueue;
-		ComPtr<ID3D12CommandAllocator>		m_commandAlloc;
+		/// using the frame resource instead
+		//ComPtr<ID3D12CommandAllocator>	m_commandAlloc;
 		ComPtr<ID3D12GraphicsCommandList>	m_commandList;
 
 		ComPtr<IDXGISwapChain3>		m_swapChain;

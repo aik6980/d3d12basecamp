@@ -65,12 +65,13 @@ namespace D3D12
 	{
 		assert(m_device);
 		assert(m_swapChain);
-		assert(m_commandAlloc);
+		//assert(m_commandAlloc);
 
 		// Flush before changing any resources.
 		flush_command_queue();
 
-		DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
+		//DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
+		reset_current_command_allocator();
 
 		// Release the previous resources we will be recreating.
 		for (auto&& a : m_swapChainBuffer)
@@ -143,9 +144,9 @@ namespace D3D12
 			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 		// Execute the resize commands.
-		DBG::ThrowIfFailed(m_commandList->Close());
-		ID3D12CommandList* cmdList[] = { m_commandList.Get() };
-		m_commandQueue->ExecuteCommandLists(1, cmdList);
+		//DBG::ThrowIfFailed(m_commandList->Close());
+		//ID3D12CommandList* cmdList[] = { m_commandList.Get() };
+		//m_commandQueue->ExecuteCommandLists(1, cmdList);
 
 		// Wait until resize is complete.
 		flush_command_queue();
@@ -165,18 +166,16 @@ namespace D3D12
 	{
 		// Reset the command list to prep for initialization commands.
 		// D3D12 Reset() method, https://msdn.microsoft.com/en-us/library/windows/desktop/dn903895(v=vs.85).aspx
-		DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
-
-		// Build frame resources
-		build_frame_resource_list();
+		//DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
+		reset_current_command_allocator();
 	}
 
 	void DEVICE::end_load_resources()
 	{
 		// Execute the initialization commands.
-		DBG::ThrowIfFailed(m_commandList->Close());
-		ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
-		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+		//DBG::ThrowIfFailed(m_commandList->Close());
+		//ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
+		//m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
 		// Wait until initialization is complete.
 		flush_command_queue();
@@ -281,8 +280,14 @@ namespace D3D12
 
 	void DEVICE::flush_command_queue()
 	{
+		// Done recording commands.
+		DBG::ThrowIfFailed(m_commandList->Close());
+		// Add the command list to the queue for execution.
+		ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
+		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
 		// Advance the fence value to mark commands up to this fence point.
-		m_currFence++;
+		m_curr_frame_resource->m_fence = ++m_currFence;
 
 		// Add an instruction to the command queue to set a new fence point.  Because we 
 		// are on the GPU timeline, the new fence point won't be set until the GPU finishes
@@ -303,12 +308,26 @@ namespace D3D12
 		}
 	}
 
+	void DEVICE::reset_current_command_allocator()
+	{
+		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
+		// Reuse the memory associated with command recording.
+		// We can only reset when the associated command lists have finished execution on the GPU.
+		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
+
+		// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+		// Reusing the command list reuses memory.
+		DBG::ThrowIfFailed(m_commandList->Reset(cmd_list_allocator.Get(), nullptr));
+	}
+
 	void DEVICE::build_frame_resource_list()
 	{
 		for (int i = 0; i < m_num_frame_resources; ++i)
 		{
 			m_frame_resource_list.push_back(make_unique<FRAME_RESOURCE>(m_device.Get()));
 		}
+
+		m_curr_frame_resource = m_frame_resource_list[m_curr_frame_resource_index].get();
 	}
 
 	void DEVICE::FindHardwareAdapter(IDXGIFactory4& factory)
@@ -342,21 +361,27 @@ namespace D3D12
 
 		DBG::ThrowIfFailed(m_device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_commandQueue)));
 
-		DBG::ThrowIfFailed(m_device->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&m_commandAlloc)));
+		//DBG::ThrowIfFailed(m_device->CreateCommandAllocator(
+		//	D3D12_COMMAND_LIST_TYPE_DIRECT,
+		//	IID_PPV_ARGS(&m_commandAlloc)));
+		build_frame_resource_list();
+
+		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
+		// Reuse the memory associated with command recording.
+		// We can only reset when the associated command lists have finished execution on the GPU.
+		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
 
 		DBG::ThrowIfFailed(m_device->CreateCommandList(
 			0,
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			m_commandAlloc.Get(),
+			cmd_list_allocator.Get(),
 			nullptr,
 			IID_PPV_ARGS(&m_commandList)));
 
 		// Start off in a closed state.  This is because the first time we refer 
 		// to the command list we will Reset it, and it needs to be closed before
 		// calling Reset.
-		m_commandList->Close();
+		//m_commandList->Close();
 	}
 
 	void DEVICE::CreateSwapChain()
