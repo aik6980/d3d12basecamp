@@ -11,6 +11,7 @@ struct MESH_LOCATION
 
 class MESH_BUFFER
 {
+public:
 	ComPtr<ID3D12Resource>	m_vertex_buffer_gpu = nullptr;
 	ComPtr<ID3D12Resource>	m_index_buffer_gpu = nullptr;
 };
