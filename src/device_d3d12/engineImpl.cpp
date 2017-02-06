@@ -10,6 +10,8 @@ void ENGINE::init(const INIT_DATA& initData)
 	m_render_device->LoadPipeline(initData.HWnd);
 	m_render_device->OnResize();
 
+	m_resource_mgr = make_unique<D3D12::RESOURCE_MANAGER>();
+
 	m_mesh_renderer = make_unique<MESH_RENDERER>(*this);
 
 	// load rendering resources

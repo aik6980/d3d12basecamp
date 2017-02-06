@@ -64,7 +64,7 @@ void MESH_RENDERER::build_pso_list()
 	DBG::ThrowIfFailed(m_engine.render_device().
 		device()->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&m_pso_list["default"])));
 
-	//build_pso_mesh_technique();
+	build_pso_mesh_technique();
 }
 
 void MESH_RENDERER::build_pso_mesh_technique()

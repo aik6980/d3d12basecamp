@@ -6,7 +6,12 @@
 // Forward Declaration
 namespace D3D12
 {
+	struct MESH_LOCATION;
+
 	class DEVICE;
+	class FRAME_RESOURCE;
+	class RESOURCE_MANAGER;
+	class MESH_BUFFER;
 }
 
 class MESH_RENDERER;

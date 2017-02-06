@@ -11,4 +11,9 @@ namespace D3D12
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			IID_PPV_ARGS(m_command_list_alloc.GetAddressOf())));
 	}
+
+	void FRAME_RESOURCE::clear_upload_buffer_list()
+	{
+		m_delete_list.clear();
+	}
 }

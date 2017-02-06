@@ -4,6 +4,8 @@
 #include "engineImpl.h"
 #include "engine_cpp.h"
 
+std::unique_ptr<ENGINE> APP::m_engine;
+
 void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 {
 	m_hInstance = hInstance;
@@ -19,4 +21,9 @@ void APP::on_update()
 {
 	m_engine->update();
 	m_engine->draw();
+}
+
+void APP::on_destroy()
+{
+
 }

@@ -15,6 +15,9 @@ namespace D3D12
 		FRAME_RESOURCE(const FRAME_RESOURCE& rhs) = delete;
 		FRAME_RESOURCE& operator=(const FRAME_RESOURCE& rhs) = delete;
 
+		// destroy all uploaded buffer in this frame
+		void clear_upload_buffer_list();
+	public:
 		// We cannot reset the allocator until the GPU is done processing the commands.
 		// So each frame needs their own allocator.
 		ComPtr<ID3D12CommandAllocator>	m_command_list_alloc;

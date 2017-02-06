@@ -17,6 +17,7 @@ private:
 	void build_pso_list();
 	void build_pso_mesh_technique();
 	void build_root_signature();
+	void build_geometry();
 
 	ENGINE&	m_engine;
 
@@ -26,4 +27,6 @@ private:
 	ComPtr<ID3D12RootSignature>							m_root_signature;
 
 	D3D12::INPUT_LAYOUT_DESC							m_input_layout_desc;
+
+	string m_mesh_buffer_name;
 };

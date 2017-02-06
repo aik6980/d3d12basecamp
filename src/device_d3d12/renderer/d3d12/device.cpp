@@ -197,6 +197,8 @@ namespace D3D12
 			CloseHandle(event_handle);
 		}
 
+		m_curr_frame_resource->clear_upload_buffer_list();
+
 		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
 		// Reuse the memory associated with command recording.
 		// We can only reset when the associated command lists have finished execution on the GPU.
@@ -306,6 +308,8 @@ namespace D3D12
 			WaitForSingleObject(eventHandle, INFINITE);
 			CloseHandle(eventHandle);
 		}
+
+		m_curr_frame_resource->clear_upload_buffer_list();
 	}
 
 	void DEVICE::reset_current_command_allocator()
