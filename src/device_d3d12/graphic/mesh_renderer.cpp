@@ -2,6 +2,7 @@
 
 #include "mesh_renderer.h"
 
+#include "common/common.cpp.h"
 #include "engineImpl.h"
 #include "engine.h"
 #include "renderer/renderer_cpp.h"
@@ -110,5 +111,11 @@ void MESH_RENDERER::build_root_signature()
 		serialized_root_sig->GetBufferPointer(),
 		serialized_root_sig->GetBufferSize(),
 		IID_PPV_ARGS(&m_root_signature)));
+}
+
+void MESH_RENDERER::build_geometry()
+{
+	MESH_VERTEX_ARRAY verts;
+	MESH_INDEX_ARRAY indices;
 }
 
