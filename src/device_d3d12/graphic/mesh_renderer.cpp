@@ -54,7 +54,9 @@ void MESH_RENDERER::draw()
 	if (mesh_buffer)
 	{
 		command_list->SetPipelineState(m_pso_list["mesh"].Get());
-		command_list->IASetVertexBuffers(mesh_buffer.m_vertex_buffer_gpu)
+		command_list->IASetVertexBuffers(0, 1, &mesh_buffer->vertex_buffer_view());
+		command_list->IASetIndexBuffer(&mesh_buffer->index_buffer_view());
+		command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
 	}
 }
@@ -145,6 +147,12 @@ void MESH_RENDERER::build_geometry()
 	D3D12::MESH_BUFFER mesh_buffer;
 	mesh_buffer.m_vertex_buffer_gpu = vb;
 	mesh_buffer.m_index_buffer_gpu = ib;
+	
+	mesh_buffer.ib_bytes_size = idx_size;
+	mesh_buffer.idx_format = DXGI_FORMAT_R32_UINT;
+	mesh_buffer.vb_bytes_size = vtx_size;
+	mesh_buffer.vtx_bytes_stride = sizeof(XMFLOAT3);
+
 	D3D12::MESH_LOCATION loc;
 	loc.index_count = (uint32_t)indices.m_indices32.size();
 	mesh_buffer.m_mesh_location_list[m_mesh_buffer_name] = loc;
