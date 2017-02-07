@@ -27,8 +27,9 @@ namespace D3D12
 		CD3DX12_RECT				get_window_rect() const;
 
 		/// low level
-		ID3D12Device*				device() { return m_device.Get(); }
-		ID3D12GraphicsCommandList*	commmand_list() { return m_commandList.Get(); }
+		ID3D12Device*				device()         { return m_device.Get(); }
+		ID3D12GraphicsCommandList*	commmand_list()  { return m_commandList.Get(); }
+		FRAME_RESOURCE&				frame_resource() { return *m_curr_frame_resource; }
 		
 		D3D12_CPU_DESCRIPTOR_HANDLE curr_backbuffer_view() const;
 		D3D12_CPU_DESCRIPTOR_HANDLE curr_backbuffer_depth_stencil_view() const;

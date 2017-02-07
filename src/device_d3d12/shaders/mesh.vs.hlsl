@@ -2,7 +2,7 @@
 
 struct VS_INPUT
 {
-	float3 position : SV_Position;
+	float3 position : POSITION;
 };
 
 VS_OUTPUT main(VS_INPUT input)

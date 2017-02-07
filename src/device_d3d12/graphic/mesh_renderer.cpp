@@ -27,6 +27,11 @@ void MESH_RENDERER::load_resources()
 
 	build_root_signature();
 	build_pso_list();
+
+	if (!m_engine.resource_mgr().request_mesh_buffer(m_mesh_buffer_name))
+	{
+		build_geometry();
+	}
 }
 
 void MESH_RENDERER::draw()
@@ -45,9 +50,13 @@ void MESH_RENDERER::draw()
 	command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	command_list->DrawInstanced(3, 1, 0, 0);
 
-	//command_list->SetPipelineState(m_pso_list["mesh"].Get());
-	//command_list->IASetVertexBuffers()
-	//command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	auto&& mesh_buffer = m_engine.resource_mgr().request_mesh_buffer(m_mesh_buffer_name);
+	if (mesh_buffer)
+	{
+		command_list->SetPipelineState(m_pso_list["mesh"].Get());
+		command_list->IASetVertexBuffers(mesh_buffer.m_vertex_buffer_gpu)
+		command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	}
 }
 
 void MESH_RENDERER::build_pso_list()
@@ -92,8 +101,8 @@ void MESH_RENDERER::build_pso_mesh_technique()
 void MESH_RENDERER::build_root_signature()
 {
 	// A root signature is an array of root parameters.
-	//CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr);
+	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	//CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr);
 
 	ComPtr<ID3DBlob> serialized_root_sig = nullptr;
 	ComPtr<ID3DBlob> error_blob = nullptr;
@@ -117,5 +126,29 @@ void MESH_RENDERER::build_geometry()
 {
 	MESH_VERTEX_ARRAY verts;
 	MESH_INDEX_ARRAY indices;
+
+	MESH_DATA_GENERATOR::create_unit_quad(verts, indices);
+
+	// upload data to the GPU
+	auto&& device = m_engine.render_device().device();
+	auto&& cmd_list = m_engine.render_device().commmand_list();
+	auto&& frame_resource = m_engine.render_device().frame_resource();
+
+	auto&& vtx_data = verts.m_position.data();
+	auto&& vtx_size = verts.m_position.size() * sizeof(XMFLOAT3);
+	auto&& vb = m_engine.resource_mgr().create_default_buffer(*device, *cmd_list, frame_resource, vtx_size, vtx_data);
+
+	auto&& idx_data = indices.m_indices32.data();
+	auto&& idx_size = indices.m_indices32.size() * sizeof(uint32_t);
+	auto&& ib = m_engine.resource_mgr().create_default_buffer(*device, *cmd_list, frame_resource, idx_size, idx_data);
+
+	D3D12::MESH_BUFFER mesh_buffer;
+	mesh_buffer.m_vertex_buffer_gpu = vb;
+	mesh_buffer.m_index_buffer_gpu = ib;
+	D3D12::MESH_LOCATION loc;
+	loc.index_count = (uint32_t)indices.m_indices32.size();
+	mesh_buffer.m_mesh_location_list[m_mesh_buffer_name] = loc;
+
+	m_engine.resource_mgr().register_mesh_buffer(m_mesh_buffer_name, mesh_buffer);
 }
 

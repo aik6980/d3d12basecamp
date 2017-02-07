@@ -18,5 +18,12 @@ namespace D3D12
 		ComPtr<ID3D12Resource>	m_index_buffer_gpu = nullptr;
 
 		unordered_map<string, MESH_LOCATION>	m_mesh_location_list;
+
+		D3D12_VERTEX_BUFFER_VIEW vertex_buffer_view() const
+		{
+			D3D12_VERTEX_BUFFER_VIEW vbv;
+			vbv.BufferLocation = m_vertex_buffer_gpu->GetGPUVirtualAddress();
+
+		}
 	};
 }
