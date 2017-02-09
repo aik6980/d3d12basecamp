@@ -49,7 +49,7 @@ project "shaders_hlsl"
 	targetdir "bin/%{cfg.buildcfg}"
 	
 	rules { "HLSLCompile" }
-	files { "src/device_d3d12/shaders/**" }
+	files { "src/shaders_hlsl/**" }
 	
 	filter "files:**.vs.hlsl"
 		HLSLCompileVars {
@@ -91,7 +91,24 @@ project "device_d3d12"
 	
 	includedirs { "src", "src/device_d3d12" }
 	
-	links { "d3d12", "dxgi", "d3dcompiler", "common" }
+	links { "d3d12", "dxgi", "d3dcompiler", "common", "shaders_hlsl" }
+	
+	debugdir "$(TargetDir)"
+
+project "device_d3d11"
+	kind "WindowedApp"
+	flags {"Winmain"}
+	
+	language "C++"
+	targetdir "bin/%{cfg.buildcfg}"
+	
+	pchheader "stdafx.h"
+	pchsource "src/device_d3d11/stdafx.cpp"
+	files {"src/device_d3d11/**.h", "src/device_d3d11/**.cpp"}
+	
+	includedirs { "src", "src/device_d3d11" }
+	
+	links { "d3d11", "dxgi", "d3dcompiler", "common", "shaders_hlsl" }
 	
 	debugdir "$(TargetDir)"
 	
