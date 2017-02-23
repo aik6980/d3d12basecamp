@@ -102,8 +102,18 @@ void MESH_RENDERER::build_pso_mesh_technique()
 
 void MESH_RENDERER::build_root_signature()
 {
+	// Root signature can be shared among shaders
+	CD3DX12_DESCRIPTOR_RANGE tbl_layout;
+	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 16, 0);
+
+	// Root parameter can be a table, root descriptor or root constants.
+	CD3DX12_ROOT_PARAMETER root_parameter_slots[1];
+
+	// Create root parameters.
+	root_parameter_slots[0].InitAsDescriptorTable(1, &tbl_layout);
+
 	// A root signature is an array of root parameters.
-	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(_countof(root_parameter_slots), root_parameter_slots, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 	//CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(0, nullptr);
 
 	ComPtr<ID3DBlob> serialized_root_sig = nullptr;
