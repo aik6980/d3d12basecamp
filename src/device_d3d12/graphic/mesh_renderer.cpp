@@ -104,7 +104,7 @@ void MESH_RENDERER::build_root_signature()
 {
 	// Root signature can be shared among shaders
 	CD3DX12_DESCRIPTOR_RANGE tbl_layout;
-	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 16, 0);
+	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 14, 0);
 
 	// Root parameter can be a table, root descriptor or root constants.
 	CD3DX12_ROOT_PARAMETER root_parameter_slots[1];
