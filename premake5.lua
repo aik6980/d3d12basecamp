@@ -4,8 +4,8 @@ workspace "basecamp"
 	configurations { "debug", "profile", "release" }
 	platforms { "win64" }
 	
-	systemversion ("10.0.10240.0:10.0.14393.0")
-	--systemversion "10.0.14393.0"
+	--systemversion ("10.0.10240.0:10.0.15063.0")
+	systemversion "10.0.15063.0"
 	startproject "device_vulkan"
 	
 	filter "platforms:win64"
