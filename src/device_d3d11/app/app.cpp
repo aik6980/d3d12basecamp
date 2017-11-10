@@ -4,6 +4,7 @@
 
 std::unique_ptr<ENGINE> APP::m_engine;
 
+
 void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 {
 	m_hInstance = hInstance;

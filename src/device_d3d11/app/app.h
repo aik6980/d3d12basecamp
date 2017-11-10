@@ -1,10 +1,5 @@
 #pragma once
 
-struct ENGINE
-{
-
-};
-
 class APP
 {
 public:
