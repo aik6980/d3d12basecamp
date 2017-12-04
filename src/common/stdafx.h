@@ -17,6 +17,12 @@
 // directx math
 #include <DirectXMath.h>
 #include <DirectXColors.h>
+#include <DirectXPackedVector.h>
 
 using namespace std;
+
 using Microsoft::WRL::ComPtr;
+
+// directx math
+using namespace DirectX;
+using namespace DirectX::PackedVector;

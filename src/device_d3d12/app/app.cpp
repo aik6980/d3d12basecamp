@@ -24,9 +24,9 @@ void APP::on_init(HINSTANCE hInstance, HWND hWnd)
 
 	// thread
 	//m_engine->update();
-	render_thread.reset(new std::thread(
-		[&]() { while (game_running) { m_engine->draw(); } 
-	}));
+	//render_thread.reset(new std::thread(
+	//	[&]() { while (game_running) { m_engine->draw(); } 
+	//}));
 }
 
 void APP::on_update()
@@ -38,4 +38,6 @@ void APP::on_destroy()
 {
 	game_running = false;
 	//render_thread->join();
+
+	m_engine->destroy();
 }

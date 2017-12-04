@@ -1,6 +1,9 @@
 #pragma once
 
 #include "d3dx12.h"
+
+#include "command_list.h"
+
 using Microsoft::WRL::ComPtr;
 
 namespace D3D12
@@ -28,7 +31,7 @@ namespace D3D12
 
 		/// low level
 		ID3D12Device*				device()         { return m_device.Get(); }
-		ID3D12GraphicsCommandList*	commmand_list()  { return m_commandList.Get(); }
+		COMMAND_LIST&				commmand_list()  { return m_commandList; }
 		FRAME_RESOURCE&				frame_resource() { return *m_curr_frame_resource; }
 		
 		D3D12_CPU_DESCRIPTOR_HANDLE curr_backbuffer_view() const;
@@ -37,6 +40,9 @@ namespace D3D12
 
 		DXGI_SWAP_CHAIN_DESC		get_swap_chain_desc() const;
 		DXGI_FORMAT					get_depth_stencil_format() const { return m_depth_stencil_format; }
+
+		void						wait_for_gpu();
+		void						flush_command_queue();
 	private:
 		void FindHardwareAdapter(IDXGIFactory4& factory);
 
@@ -45,8 +51,8 @@ namespace D3D12
 
 		void CreateRtvAndDsvDescriptorHeaps();
 
-		void flush_command_queue();
 		void reset_current_command_allocator();
+		void create_backbuffer();
 
 		// frame resource function
 		void build_frame_resource_list();
@@ -65,7 +71,7 @@ namespace D3D12
 		ComPtr<ID3D12CommandQueue>			m_commandQueue;
 		/// using the frame resource instead
 		//ComPtr<ID3D12CommandAllocator>	m_commandAlloc;
-		ComPtr<ID3D12GraphicsCommandList>	m_commandList;
+		COMMAND_LIST				m_commandList;
 
 		ComPtr<IDXGISwapChain3>		m_swapChain;
 		UINT						m_currBackBuffer = 0;

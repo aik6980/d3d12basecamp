@@ -1,7 +1,5 @@
 #pragma once
 
-using DirectX::XMFLOAT3;
-
 struct MESH_VERTEX_ARRAY
 {
 	// vertices
@@ -17,4 +15,9 @@ struct MESH_INDEX_ARRAY
 	vector<uint32_t> m_indices32;
 
 	void reset_indices(UINT n);
+};
+
+struct TEXTURE_DATA
+{
+	vector<XMCOLOR> m_data;
 };

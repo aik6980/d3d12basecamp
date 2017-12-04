@@ -40,24 +40,24 @@ void MESH_RENDERER::draw()
 	auto&& command_list = m_engine.render_device().commmand_list();
 
 	// Specify the buffers we are going to render to.
-	command_list->OMSetRenderTargets(1, &render_device.curr_backbuffer_view(), true, 
+	command_list()->OMSetRenderTargets(1, &render_device.curr_backbuffer_view(), true, 
 		&render_device.curr_backbuffer_depth_stencil_view());
-	command_list->RSSetViewports(1, &render_device.get_window_viewport());
-	command_list->RSSetScissorRects(1, &render_device.get_window_rect());
+	command_list()->RSSetViewports(1, &render_device.get_window_viewport());
+	command_list()->RSSetScissorRects(1, &render_device.get_window_rect());
 	
-	command_list->SetPipelineState(m_pso_list["default"].Get());
-	command_list->SetGraphicsRootSignature(m_root_signature.Get());
-	command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	command_list->DrawInstanced(3, 1, 0, 0);
+	command_list()->SetPipelineState(m_pso_list["default"].Get());
+	command_list()->SetGraphicsRootSignature(m_root_signature.Get());
+	command_list()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	command_list()->DrawInstanced(3, 1, 0, 0);
 
 	auto&& mesh_buffer = m_engine.resource_mgr().request_mesh_buffer(m_mesh_buffer_name);
 	if (mesh_buffer)
 	{
-		command_list->SetPipelineState(m_pso_list["mesh"].Get());
-		command_list->IASetVertexBuffers(0, 1, &mesh_buffer->vertex_buffer_view());
-		command_list->IASetIndexBuffer(&mesh_buffer->index_buffer_view());
-		command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
+		command_list()->SetPipelineState(m_pso_list["mesh"].Get());
+		command_list()->IASetVertexBuffers(0, 1, &mesh_buffer->vertex_buffer_view());
+		command_list()->IASetIndexBuffer(&mesh_buffer->index_buffer_view());
+		command_list()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		command_list()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 	}
 }
 
@@ -148,19 +148,19 @@ void MESH_RENDERER::build_geometry()
 
 	auto&& vtx_data = verts.m_position.data();
 	auto&& vtx_size = verts.m_position.size() * sizeof(XMFLOAT3);
-	auto&& vb = m_engine.resource_mgr().create_default_buffer(*device, *cmd_list, frame_resource, vtx_size, vtx_data);
+	auto&& vb = m_engine.resource_mgr().create_default_buffer(*device, *cmd_list(), frame_resource, vtx_size, vtx_data);
 
 	auto&& idx_data = indices.m_indices32.data();
 	auto&& idx_size = indices.m_indices32.size() * sizeof(uint32_t);
-	auto&& ib = m_engine.resource_mgr().create_default_buffer(*device, *cmd_list, frame_resource, idx_size, idx_data);
+	auto&& ib = m_engine.resource_mgr().create_default_buffer(*device, *cmd_list(), frame_resource, idx_size, idx_data);
 
 	D3D12::MESH_BUFFER mesh_buffer;
 	mesh_buffer.m_vertex_buffer_gpu = vb;
 	mesh_buffer.m_index_buffer_gpu = ib;
 	
-	mesh_buffer.ib_bytes_size = idx_size;
+	mesh_buffer.ib_bytes_size = (uint32_t)idx_size;
 	mesh_buffer.idx_format = DXGI_FORMAT_R32_UINT;
-	mesh_buffer.vb_bytes_size = vtx_size;
+	mesh_buffer.vb_bytes_size = (uint32_t)vtx_size;
 	mesh_buffer.vtx_bytes_stride = sizeof(XMFLOAT3);
 
 	D3D12::MESH_LOCATION loc;

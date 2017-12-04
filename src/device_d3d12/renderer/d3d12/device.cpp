@@ -14,7 +14,7 @@ namespace D3D12
 
 	DEVICE::~DEVICE()
 	{
-		flush_command_queue();
+		wait_for_gpu();
 	}
 
 	void DEVICE::LoadPipeline(HWND hwnd)
@@ -59,6 +59,9 @@ namespace D3D12
 		CreateSwapChain();
 		// create rtv and dsv heap
 		CreateRtvAndDsvDescriptorHeaps();
+
+		// create rtv and dsv
+		create_backbuffer();
 	}
 
 	void DEVICE::OnResize()
@@ -70,6 +73,199 @@ namespace D3D12
 		// Flush before changing any resources.
 		flush_command_queue();
 
+		create_backbuffer();
+	}
+
+	void DEVICE::begin_load_resources()
+	{
+		// Reset the command list to prep for initialization commands.
+		// D3D12 Reset() method, https://msdn.microsoft.com/en-us/library/windows/desktop/dn903895(v=vs.85).aspx
+		//DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
+		reset_current_command_allocator();
+	}
+
+	void DEVICE::end_load_resources()
+	{
+		// Execute the initialization commands.
+		//DBG::ThrowIfFailed(m_commandList->Close());
+		//ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
+		//m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+		// Wait until initialization is complete.
+		flush_command_queue();
+	}
+
+	void DEVICE::begin_frame()
+	{
+		// Cycle through the circular frame resource array.
+		m_curr_frame_resource_index = (m_curr_frame_resource_index + 1) % m_num_frame_resources;
+		m_curr_frame_resource = m_frame_resource_list[m_curr_frame_resource_index].get();
+
+		// Has the GPU finished processing the commands of the current frame resource?
+		// If not, wait until the GPU has completed commands up to this fence point.
+		if (m_curr_frame_resource->m_fence != 0 && m_fence->GetCompletedValue() < m_curr_frame_resource->m_fence)
+		{
+			HANDLE event_handle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_curr_frame_resource->m_fence, event_handle));
+			WaitForSingleObject(event_handle, INFINITE);
+			CloseHandle(event_handle);
+		}
+
+		m_curr_frame_resource->clear_upload_buffer_list();
+
+		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
+		// Reuse the memory associated with command recording.
+		// We can only reset when the associated command lists have finished execution on the GPU.
+		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
+
+		// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+		// Reusing the command list reuses memory.
+		m_commandList.reset(cmd_list_allocator.Get(), nullptr);
+	}
+
+	void DEVICE::end_frame()
+	{
+		// Done recording commands.
+		m_commandList.close();
+		// Add the command list to the queue for execution.
+		ID3D12CommandList* cmdsLists[] = { m_commandList() };
+		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+		// Swap the back and front buffers
+		DBG::ThrowIfFailed(m_swapChain->Present(0, 0));
+		m_currBackBuffer = (m_currBackBuffer + 1) % m_frameCount;
+
+		// Advance the fence value to mark commands up to this fence point.
+		m_curr_frame_resource->m_fence = ++m_currFence;
+
+		// Add an instruction to the command queue to set a new fence point. 
+		// Because we are on the GPU timeline, the new fence point won't be 
+		// set until the GPU finishes processing all the commands prior to this Signal().
+		m_commandQueue->Signal(m_fence.Get(), m_currFence);
+	}
+
+	D3D12_VIEWPORT DEVICE::get_window_viewport() const
+	{
+		CRect client_rect;
+		GetClientRect(m_hWnd, &client_rect);
+
+		D3D12_VIEWPORT output;
+		output.TopLeftX = (float)client_rect.TopLeft().x;
+		output.TopLeftY = (float)client_rect.TopLeft().y;
+		output.Width = (float)client_rect.Width();
+		output.Height = (float)client_rect.Height();
+		output.MinDepth = 0.0f;
+		output.MaxDepth = 1.0f;
+
+		return output;
+	}
+
+	CD3DX12_RECT DEVICE::get_window_rect() const
+	{
+		CRect client_rect;
+		GetClientRect(m_hWnd, &client_rect);
+		return CD3DX12_RECT(client_rect.TopLeft().x, client_rect.TopLeft().y,
+			client_rect.BottomRight().x, client_rect.BottomRight().y);
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE DEVICE::curr_backbuffer_view() const
+	{
+		return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
+			m_currBackBuffer,
+			m_rtvDescHeapSize);
+	}
+
+	D3D12_CPU_DESCRIPTOR_HANDLE DEVICE::curr_backbuffer_depth_stencil_view() const
+	{
+		return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+	}
+
+	ID3D12Resource * DEVICE::curr_backbuffer() const
+	{
+		return m_swapChainBuffer[m_currBackBuffer].Get();
+	}
+
+	DXGI_SWAP_CHAIN_DESC DEVICE::get_swap_chain_desc() const
+	{
+		DXGI_SWAP_CHAIN_DESC desc;
+		m_swapChain->GetDesc(&desc);
+
+		return desc;
+	}
+
+	void DEVICE::wait_for_gpu()
+	{
+		// Wait until the GPU has completed commands up to this fence point.
+		if (m_fence->GetCompletedValue() < m_currFence)
+		{
+			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
+
+			// Fire event when GPU hits current fence.
+			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_currFence, eventHandle));
+
+			// Wait until the GPU hits current fence event is fired.
+			WaitForSingleObject(eventHandle, INFINITE);
+			CloseHandle(eventHandle);
+		}
+	}
+
+	void DEVICE::flush_command_queue()
+	{
+		// Done recording commands.
+		m_commandList.close();
+		// Add the command list to the queue for execution.
+		ID3D12CommandList* cmdsLists[] = { m_commandList() };
+		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+		// Advance the fence value to mark commands up to this fence point.
+		m_curr_frame_resource->m_fence = ++m_currFence;
+
+		// Add an instruction to the command queue to set a new fence point.  Because we 
+		// are on the GPU time line, the new fence point won't be set until the GPU finishes
+		// processing all the commands prior to this Signal().
+		DBG::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_currFence));
+
+		// Wait until the GPU has completed commands up to this fence point.
+		if (m_fence->GetCompletedValue() < m_currFence)
+		{
+			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
+
+			// Fire event when GPU hits current fence.
+			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_currFence, eventHandle));
+
+			// Wait until the GPU hits current fence event is fired.
+			WaitForSingleObject(eventHandle, INFINITE);
+			CloseHandle(eventHandle);
+		}
+
+		m_curr_frame_resource->clear_upload_buffer_list();
+	}
+
+	void DEVICE::reset_current_command_allocator()
+	{
+		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
+		// Reuse the memory associated with command recording.
+		// We can only reset when the associated command lists have finished execution on the GPU.
+		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
+
+		// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+		// Reusing the command list reuses memory.
+		m_commandList.reset(cmd_list_allocator.Get(), nullptr);
+	}
+
+	void DEVICE::build_frame_resource_list()
+	{
+		for (int i = 0; i < m_num_frame_resources; ++i)
+		{
+			m_frame_resource_list.push_back(make_unique<FRAME_RESOURCE>(m_device.Get()));
+		}
+
+		m_curr_frame_resource = m_frame_resource_list[m_curr_frame_resource_index].get();
+	}
+
+	void DEVICE::create_backbuffer()
+	{
 		//DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
 		reset_current_command_allocator();
 
@@ -140,7 +336,7 @@ namespace D3D12
 		m_device->CreateDepthStencilView(m_depthBuffer.Get(), &dsvDesc, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
 		// Transition the resource from its initial state to be used as a depth buffer.
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_depthBuffer.Get(),
+		m_commandList()->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_depthBuffer.Get(),
 			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 		// Execute the resize commands.
@@ -160,178 +356,6 @@ namespace D3D12
 		m_screenViewport.MaxDepth = 1.0f;
 
 		m_screenScissorRect = { 0, 0, clientRect.Width(), clientRect.Height() };
-	}
-
-	void DEVICE::begin_load_resources()
-	{
-		// Reset the command list to prep for initialization commands.
-		// D3D12 Reset() method, https://msdn.microsoft.com/en-us/library/windows/desktop/dn903895(v=vs.85).aspx
-		//DBG::ThrowIfFailed(m_commandList->Reset(m_commandAlloc.Get(), nullptr));
-		reset_current_command_allocator();
-	}
-
-	void DEVICE::end_load_resources()
-	{
-		// Execute the initialization commands.
-		//DBG::ThrowIfFailed(m_commandList->Close());
-		//ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
-		//m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
-
-		// Wait until initialization is complete.
-		flush_command_queue();
-	}
-
-	void DEVICE::begin_frame()
-	{
-		// Cycle through the circular frame resource array.
-		m_curr_frame_resource_index = (m_curr_frame_resource_index + 1) % m_num_frame_resources;
-		m_curr_frame_resource = m_frame_resource_list[m_curr_frame_resource_index].get();
-
-		// Has the GPU finished processing the commands of the current frame resource?
-		// If not, wait until the GPU has completed commands up to this fence point.
-		if (m_curr_frame_resource->m_fence != 0 && m_fence->GetCompletedValue() < m_curr_frame_resource->m_fence)
-		{
-			HANDLE event_handle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
-			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_curr_frame_resource->m_fence, event_handle));
-			WaitForSingleObject(event_handle, INFINITE);
-			CloseHandle(event_handle);
-		}
-
-		m_curr_frame_resource->clear_upload_buffer_list();
-
-		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
-		// Reuse the memory associated with command recording.
-		// We can only reset when the associated command lists have finished execution on the GPU.
-		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
-
-		// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
-		// Reusing the command list reuses memory.
-		DBG::ThrowIfFailed(m_commandList->Reset(cmd_list_allocator.Get(), nullptr));
-	}
-
-	void DEVICE::end_frame()
-	{
-		// Done recording commands.
-		DBG::ThrowIfFailed(m_commandList->Close());
-		// Add the command list to the queue for execution.
-		ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
-		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
-
-		// Swap the back and front buffers
-		DBG::ThrowIfFailed(m_swapChain->Present(0, 0));
-		m_currBackBuffer = (m_currBackBuffer + 1) % m_frameCount;
-
-		// Advance the fence value to mark commands up to this fence point.
-		m_curr_frame_resource->m_fence = ++m_currFence;
-
-		// Add an instruction to the command queue to set a new fence point. 
-		// Because we are on the GPU timeline, the new fence point won't be 
-		// set until the GPU finishes processing all the commands prior to this Signal().
-		m_commandQueue->Signal(m_fence.Get(), m_currFence);
-	}
-
-	D3D12_VIEWPORT DEVICE::get_window_viewport() const
-	{
-		CRect client_rect;
-		GetClientRect(m_hWnd, &client_rect);
-
-		D3D12_VIEWPORT output;
-		output.TopLeftX = (float)client_rect.TopLeft().x;
-		output.TopLeftY = (float)client_rect.TopLeft().y;
-		output.Width = (float)client_rect.Width();
-		output.Height = (float)client_rect.Height();
-		output.MinDepth = 0.0f;
-		output.MaxDepth = 1.0f;
-
-		return output;
-	}
-
-	CD3DX12_RECT DEVICE::get_window_rect() const
-	{
-		CRect client_rect;
-		GetClientRect(m_hWnd, &client_rect);
-		return CD3DX12_RECT(client_rect.TopLeft().x, client_rect.TopLeft().y,
-			client_rect.BottomRight().x, client_rect.BottomRight().y);
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE DEVICE::curr_backbuffer_view() const
-	{
-		return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-			m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
-			m_currBackBuffer,
-			m_rtvDescHeapSize);
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE DEVICE::curr_backbuffer_depth_stencil_view() const
-	{
-		return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-	}
-
-	ID3D12Resource * DEVICE::curr_backbuffer() const
-	{
-		return m_swapChainBuffer[m_currBackBuffer].Get();
-	}
-
-	DXGI_SWAP_CHAIN_DESC DEVICE::get_swap_chain_desc() const
-	{
-		DXGI_SWAP_CHAIN_DESC desc;
-		m_swapChain->GetDesc(&desc);
-
-		return desc;
-	}
-
-	void DEVICE::flush_command_queue()
-	{
-		// Done recording commands.
-		DBG::ThrowIfFailed(m_commandList->Close());
-		// Add the command list to the queue for execution.
-		ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
-		m_commandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
-
-		// Advance the fence value to mark commands up to this fence point.
-		m_curr_frame_resource->m_fence = ++m_currFence;
-
-		// Add an instruction to the command queue to set a new fence point.  Because we 
-		// are on the GPU timeline, the new fence point won't be set until the GPU finishes
-		// processing all the commands prior to this Signal().
-		DBG::ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_currFence));
-
-		// Wait until the GPU has completed commands up to this fence point.
-		if (m_fence->GetCompletedValue() < m_currFence)
-		{
-			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
-
-			// Fire event when GPU hits current fence.
-			DBG::ThrowIfFailed(m_fence->SetEventOnCompletion(m_currFence, eventHandle));
-
-			// Wait until the GPU hits current fence event is fired.
-			WaitForSingleObject(eventHandle, INFINITE);
-			CloseHandle(eventHandle);
-		}
-
-		m_curr_frame_resource->clear_upload_buffer_list();
-	}
-
-	void DEVICE::reset_current_command_allocator()
-	{
-		auto cmd_list_allocator = m_curr_frame_resource->m_command_list_alloc;
-		// Reuse the memory associated with command recording.
-		// We can only reset when the associated command lists have finished execution on the GPU.
-		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
-
-		// A command list can be reset after it has been added to the command queue via ExecuteCommandList.
-		// Reusing the command list reuses memory.
-		DBG::ThrowIfFailed(m_commandList->Reset(cmd_list_allocator.Get(), nullptr));
-	}
-
-	void DEVICE::build_frame_resource_list()
-	{
-		for (int i = 0; i < m_num_frame_resources; ++i)
-		{
-			m_frame_resource_list.push_back(make_unique<FRAME_RESOURCE>(m_device.Get()));
-		}
-
-		m_curr_frame_resource = m_frame_resource_list[m_curr_frame_resource_index].get();
 	}
 
 	void DEVICE::FindHardwareAdapter(IDXGIFactory4& factory)
@@ -375,17 +399,18 @@ namespace D3D12
 		// We can only reset when the associated command lists have finished execution on the GPU.
 		DBG::ThrowIfFailed(cmd_list_allocator->Reset());
 
+		ComPtr<ID3D12GraphicsCommandList> d3d12_command_list;
 		DBG::ThrowIfFailed(m_device->CreateCommandList(
 			0,
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			cmd_list_allocator.Get(),
 			nullptr,
-			IID_PPV_ARGS(&m_commandList)));
+			IID_PPV_ARGS(&d3d12_command_list)));
 
 		// Start off in a closed state.  This is because the first time we refer 
 		// to the command list we will Reset it, and it needs to be closed before
 		// calling Reset.
-		//m_commandList->Close();
+		m_commandList.init(d3d12_command_list);
 	}
 
 	void DEVICE::CreateSwapChain()

@@ -15,6 +15,8 @@ public:
 	int32_t get_version() { return VERSION; }
 
 	void	init(const INIT_DATA& initData);
+	void	destroy();
+
 	void	update();
 	void	draw();
 
