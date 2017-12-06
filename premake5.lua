@@ -80,7 +80,7 @@ project "common"
 	
 project "device_d3d12"
 	kind "WindowedApp"
-	flags {"Winmain"}
+	entrypoint "WinMainCRTStartup"
 	
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
@@ -97,7 +97,7 @@ project "device_d3d12"
 
 project "device_d3d11"
 	kind "WindowedApp"
-	flags {"Winmain"}
+	entrypoint "WinMainCRTStartup"
 	
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
@@ -114,7 +114,7 @@ project "device_d3d11"
 	
 project "device_vulkan"
 	kind "WindowedApp"
-	flags {"Winmain"}
+	entrypoint "WinMainCRTStartup"
 	
 	language "C++"
 	targetdir "bin/%{cfg.buildcfg}"
