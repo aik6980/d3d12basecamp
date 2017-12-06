@@ -25,24 +25,26 @@ void MESH_DATA_GENERATOR::create_unit_quad(MESH_VERTEX_ARRAY& vertex_array, MESH
 
 //////////////////////////////////////////////////////////////////////////
 
-TEXTURE_DATA TEXTURE_DATA_GENERATOR::create_default_texture(UINT texture_size)
+TEXTURE_DATA TEXTURE_DATA_GENERATOR::create_default_texture(UINT texture_width, UINT cell_width)
 {
-	return TEXTURE_DATA();
-	/*
-	const UINT row_pitch = texture_size * sizeof(XMCOLOR);
-	const UINT cellPitch = rowPitch >> 3;		// The width of a cell in the checkboard texture.
-	const UINT cellHeight = TextureWidth >> 3;	// The height of a cell in the checkerboard texture.
-	const UINT textureSize = rowPitch * TextureHeight;
 
-	std::vector<UINT8> data(textureSize);
+	const UINT pixel_size = sizeof(XMCOLOR);
+	const UINT row_pitch = texture_width * pixel_size;
+	const UINT texture_height = texture_width;
+	const UINT cell_pitch = cell_width * pixel_size;		// The width of a cell in the checkboard texture.
+	const UINT cell_height = cell_width;	// The height of a cell in the checkerboard texture.
+	const UINT texture_size = row_pitch * texture_height;
+
+	// come back and change this to XMCOLOR!
+	std::vector<UINT8> data(texture_size);
 	UINT8* pData = &data[0];
 
-	for (UINT n = 0; n < textureSize; n += TexturePixelSize)
+	for (UINT n = 0; n < texture_size; n += pixel_size)
 	{
-		UINT x = n % rowPitch;
-		UINT y = n / rowPitch;
-		UINT i = x / cellPitch;
-		UINT j = y / cellHeight;
+		UINT x = n % row_pitch;
+		UINT y = n / row_pitch;
+		UINT i = x / cell_pitch;
+		UINT j = y / cell_pitch;
 
 		if (i % 2 == j % 2)
 		{
@@ -60,6 +62,9 @@ TEXTURE_DATA TEXTURE_DATA_GENERATOR::create_default_texture(UINT texture_size)
 		}
 	}
 
-	return data;
-	*/
+	TEXTURE_DATA texture_data;
+	texture_data.m_data.resize(texture_width * texture_height);
+	memcpy(texture_data.m_data.data(), data.data(), sizeof(data));
+
+	return texture_data;
 }

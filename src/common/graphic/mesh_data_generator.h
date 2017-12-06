@@ -11,5 +11,5 @@ public:
 class TEXTURE_DATA_GENERATOR
 {
 public:
-	static TEXTURE_DATA create_default_texture(UINT texture_size);
+	static TEXTURE_DATA create_default_texture(UINT texture_width, UINT cell_width);
 };
