@@ -41,8 +41,9 @@ rule "HLSLCompile"
 	}
 	
 	buildmessage 'Compiling %(Filename) with HLSLCompile'
-	buildcommands '"$(WindowsSdkDir)/bin/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
+	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
 	buildoutputs '$(TargetPath)/%(Filename).obj'
+	
 		
 project "shaders_hlsl"
 	kind "Utility"

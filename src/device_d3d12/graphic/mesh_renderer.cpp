@@ -57,7 +57,7 @@ void MESH_RENDERER::draw()
 		command_list()->IASetVertexBuffers(0, 1, &mesh_buffer->vertex_buffer_view());
 		command_list()->IASetIndexBuffer(&mesh_buffer->index_buffer_view());
 		command_list()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		command_list()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+		//command_list()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 	}
 }
 
@@ -104,13 +104,14 @@ void MESH_RENDERER::build_root_signature()
 {
 	// Root signature can be shared among shaders
 	CD3DX12_DESCRIPTOR_RANGE tbl_layout;
-	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 8, 0);
+	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0);
 
 	// Root parameter can be a table, root descriptor or root constants.
 	CD3DX12_ROOT_PARAMETER root_parameter_slots[1];
 
 	// Create root parameters.
-	root_parameter_slots[0].InitAsDescriptorTable(1, &tbl_layout);
+	//root_parameter_slots[0].InitAsDescriptorTable(1, &tbl_layout, D3D12_SHADER_VISIBILITY_ALL);
+	root_parameter_slots[0].InitAsConstantBufferView(0, 1);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(_countof(root_parameter_slots), root_parameter_slots, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
