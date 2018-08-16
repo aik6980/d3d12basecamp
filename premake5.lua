@@ -44,7 +44,26 @@ rule "HLSLCompile"
 	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
 	buildoutputs '$(TargetPath)/%(Filename).obj'
 	
-		
+rule "HLSL2SPIRVCompile"
+	display "HLSL->SPIRV Compiler"
+	fileextension ".hlsl"
+	
+	propertydefinition {
+		name = "profile",
+		kind = "string",
+		value = ""
+	}
+	
+	propertydefinition {
+		name = "asm_file_output",
+		kind = "string",
+		value = ""
+	}
+	
+	buildmessage 'Compiling %(Filename) with HLSLCompile'
+	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
+	buildoutputs '$(TargetPath)/%(Filename).obj'
+	
 project "shaders_hlsl"
 	kind "Utility"
 	targetdir "bin/%{cfg.buildcfg}"

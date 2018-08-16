@@ -104,14 +104,21 @@ void MESH_RENDERER::build_root_signature()
 {
 	// Root signature can be shared among shaders
 	CD3DX12_DESCRIPTOR_RANGE tbl_layout;
-	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0);
+	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 8, 0);
+	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 8, 0);
+	tbl_layout.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 8, 0);
+
+	CD3DX12_DESCRIPTOR_RANGE tbl_layout1;
+	tbl_layout1.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 8, 0);
 
 	// Root parameter can be a table, root descriptor or root constants.
-	CD3DX12_ROOT_PARAMETER root_parameter_slots[1];
+	CD3DX12_ROOT_PARAMETER root_parameter_slots[2];
 
 	// Create root parameters.
-	//root_parameter_slots[0].InitAsDescriptorTable(1, &tbl_layout, D3D12_SHADER_VISIBILITY_ALL);
-	root_parameter_slots[0].InitAsConstantBufferView(0, 1);
+	root_parameter_slots[0].InitAsDescriptorTable(1, &tbl_layout, D3D12_SHADER_VISIBILITY_ALL);
+	root_parameter_slots[1].InitAsDescriptorTable(1, &tbl_layout1, D3D12_SHADER_VISIBILITY_ALL);
+	//root_parameter_slots[0].InitAsConstantBufferView(0, 1);
+	//root_parameter_slots[1].InitAsConstantBufferView(1, 2);
 
 	// A root signature is an array of root parameters.
 	CD3DX12_ROOT_SIGNATURE_DESC root_sig_desc(_countof(root_parameter_slots), root_parameter_slots, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
