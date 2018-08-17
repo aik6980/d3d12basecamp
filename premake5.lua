@@ -1,11 +1,17 @@
+function os.winSdkVersion()
+    local reg_arch = iif( os.is64bit(), "\\Wow6432Node\\", "\\" )
+    local sdk_version = os.getWindowsRegistry( "HKLM:SOFTWARE" .. reg_arch .."Microsoft\\Microsoft SDKs\\Windows\\v10.0\\ProductVersion" )
+    if sdk_version ~= nil then return sdk_version end
+end
+
 location "build"
 
 workspace "basecamp"
 	configurations { "debug", "profile", "release" }
 	platforms { "win64" }
 	
-	--systemversion ("10.0.10240.0:10.0.15063.0")
-	systemversion "10.0.15063.0"
+	systemversion(os.winSdkVersion() .. ".0")
+	--systemversion("latest")
 	startproject "device_vulkan"
 	
 	filter "platforms:win64"
