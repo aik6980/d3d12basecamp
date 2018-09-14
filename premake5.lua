@@ -47,7 +47,7 @@ rule "HLSLCompile"
 	}
 	
 	buildmessage 'Compiling %(Filename) with HLSLCompile'
-	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
+	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni /Fc [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
 	buildoutputs '$(TargetPath)/%(Filename).obj'
 	
 rule "HLSL2SPIRVCompile"
@@ -67,7 +67,7 @@ rule "HLSL2SPIRVCompile"
 	}
 	
 	buildmessage 'Compiling %(Filename) with HLSLCompile'
-	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
+	buildcommands '"$(WindowsSdkDir)bin/$(TargetPlatformVersion)/x64/fxc.exe" /T [profile] /Ni /Fc [asm_file_output] /Fo "$(TargetPath)/%(Filename).obj" "%(FullPath)"'
 	buildoutputs '$(TargetPath)/%(Filename).obj'
 	
 project "shaders_hlsl"
@@ -76,6 +76,11 @@ project "shaders_hlsl"
 	
 	rules { "HLSLCompile" }
 	files { "src/shaders_hlsl/**" }
+	
+	filter "files:**.cs.hlsl"
+		HLSLCompileVars {
+			profile = "cs_5_0"
+		}
 	
 	filter "files:**.vs.hlsl"
 		HLSLCompileVars {
@@ -89,7 +94,7 @@ project "shaders_hlsl"
 		
 	filter "configurations:debug"
 		HLSLCompileVars {
-			asm_file_output = "/Fc $(TargetPath)/%(Filename).asm"
+			asm_file_output = "$(TargetPath)/%(Filename).asm"
 		}
 
 project "common"
