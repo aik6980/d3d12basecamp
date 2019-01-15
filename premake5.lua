@@ -156,7 +156,7 @@ project "device_vulkan"
 	
 	includedirs { "$(VK_SDK_PATH)/include", "src", "src/device_vulkan" }
 	
-	libdirs { "$(VK_SDK_PATH)/bin" }
+	libdirs { "$(VK_SDK_PATH)/lib" }
 	links { "vulkan-1.lib", "common" }
 	
 	debugdir "$(TargetDir)"
